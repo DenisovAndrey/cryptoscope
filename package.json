@@ -1,6 +1,7 @@
 {
   "name": "cryptoscope",
   "version": "1.0.0",
+  "type": "module",
   "description": "Personal Crypto Trading Decision Support",
   "main": "dist/index.js",
   "engines": {

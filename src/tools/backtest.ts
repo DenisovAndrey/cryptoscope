@@ -53,7 +53,7 @@ export class Backtester {
                 l2Timing: l2.timing
             };
 
-            if (signal && signal.direction !== 'NEUTRAL') {
+            if (signal && signal.direction !== 'NO_TRADE') {
                 // Validate outcome for this specific signal
                 const futureCandles = db.prepare(`
                     SELECT * FROM candles 

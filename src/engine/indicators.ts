@@ -33,13 +33,13 @@ export class IndicatorCalculator {
             const price = candle.close;
 
             // Update indicators
-            ema20.update(price);
-            ema50.update(price);
-            ema200.update(price);
-            rsi14.update(price);
-            macd.update(price);
-            bb.update(price);
-            atr.update({ high: candle.high, low: candle.low, close: candle.close });
+            ema20.update(price, false);
+            ema50.update(price, false);
+            ema200.update(price, false);
+            rsi14.update(price, false);
+            macd.update(price, false);
+            bb.update(price, false);
+            atr.update({ high: candle.high, low: candle.low, close: candle.close }, false);
 
             // Only save if matured (some indicators need enough data)
             if (ema20.isStable && ema200.isStable && rsi14.isStable && macd.isStable) {
@@ -48,16 +48,16 @@ export class IndicatorCalculator {
                 const timeframe = this.timeframe;
 
                 const results = [
-                    { name: 'ema_20', value: Number(ema20.getResult().valueOf()) },
-                    { name: 'ema_50', value: Number(ema50.getResult().valueOf()) },
-                    { name: 'ema_200', value: Number(ema200.getResult().valueOf()) },
-                    { name: 'rsi_14', value: Number(rsi14.getResult().valueOf()) },
-                    { name: 'macd', value: Number(macd.getResult().signal.valueOf()) }, // MACD Signal line
-                    { name: 'macd_histogram', value: Number(macd.getResult().histogram.valueOf()) },
-                    { name: 'bb_upper', value: Number(bb.getResult().upper.valueOf()) },
-                    { name: 'bb_lower', value: Number(bb.getResult().lower.valueOf()) },
-                    { name: 'bb_middle', value: Number(bb.getResult().middle.valueOf()) },
-                    { name: 'atr_14', value: Number(atr.getResult().valueOf()) }
+                    { name: 'ema_20', value: Number(ema20.getResult()!.valueOf()) },
+                    { name: 'ema_50', value: Number(ema50.getResult()!.valueOf()) },
+                    { name: 'ema_200', value: Number(ema200.getResult()!.valueOf()) },
+                    { name: 'rsi_14', value: Number(rsi14.getResult()!.valueOf()) },
+                    { name: 'macd', value: Number(macd.getResult()!.signal.valueOf()) }, // MACD Signal line
+                    { name: 'macd_histogram', value: Number(macd.getResult()!.histogram.valueOf()) },
+                    { name: 'bb_upper', value: Number(bb.getResult()!.upper.valueOf()) },
+                    { name: 'bb_lower', value: Number(bb.getResult()!.lower.valueOf()) },
+                    { name: 'bb_middle', value: Number(bb.getResult()!.middle.valueOf()) },
+                    { name: 'atr_14', value: Number(atr.getResult()!.valueOf()) }
                 ];
 
                 for (const res of results) {
