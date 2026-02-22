@@ -227,9 +227,9 @@ Use the menu buttons below or commands to manage your bot.
         const result = await pipelineManager.runFullCycle();
 
         if (result.success) {
-            this.bot?.sendMessage(chatId, `✅ *Analysis Complete:* ${result.message}`, this.getMainMenu());
+            this.bot?.sendMessage(chatId, `✅ *Analysis Complete:* ${this.escapeMarkdown(result.message)}`, { parse_mode: 'Markdown', ...this.getMainMenu() });
         } else {
-            this.bot?.sendMessage(chatId, `❌ *Analysis Failed:* ${result.message}`, this.getMainMenu());
+            this.bot?.sendMessage(chatId, `❌ *Analysis Failed:* ${this.escapeMarkdown(result.message)}`, { parse_mode: 'Markdown', ...this.getMainMenu() });
         }
     }
 
