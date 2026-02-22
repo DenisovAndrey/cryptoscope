@@ -25,10 +25,22 @@ export class TelegramService {
         }
     }
 
+    private escapeMarkdown(text: string): string {
+        if (!text) return "";
+        // Basic Markdown escaping for characters that cause 400 Bad Request
+        return text.replace(/([_*`[\]()])/g, '\\$1');
+    }
+
     private setupErrorNotifications() {
         systemEvents.on(SystemEventTypes.ERROR, (error: string) => {
+            // Ignore Telegram internal errors to prevent notification loops
+            if (error.includes('ETELEGRAM') || error.includes('polling_error')) {
+                return;
+            }
+
             if (this.bot && config.telegram.chatId) {
-                const message = `⚠️ *SYSTEM ERROR* ⚠️\n\n\`\`\`\n${error}\n\`\`\`\n\nCheck /status or /logs for more details.`;
+                const escapedError = this.escapeMarkdown(error);
+                const message = `⚠️ *SYSTEM ERROR* ⚠️\n\n\`\`\`\n${escapedError}\n\`\`\`\n\nCheck /status or /logs for more details.`;
                 this.bot.sendMessage(config.telegram.chatId, message, { parse_mode: 'Markdown' });
             }
         });
@@ -260,7 +272,7 @@ ${icon} *NEW SIGNAL: ${signal.asset}* ${icon}${quantityStr}
 
 *Size:* ${signal.positionSizePct}%
 
-*Rationale:* ${signal.rationale}
+*Rationale:* ${this.escapeMarkdown(signal.rationale)}
         `.trim();
     }
 }
