@@ -8,6 +8,7 @@ import { tradeJournalRepository } from '../db/repositories/journal.js';
 import { signalRepository } from '../db/repositories/signals.js';
 import { statusService } from './status.js';
 import { systemEvents, SystemEventTypes } from './events.js';
+import { pipelineManager } from '../engine/pipeline.js';
 
 export class TelegramService {
     private bot: TelegramBot | null = null;
@@ -51,6 +52,7 @@ export class TelegramService {
         try {
             await this.bot.setMyCommands([
                 { command: 'start', description: 'Start the bot and show menu' },
+                { command: 'analyze', description: 'Trigger full analysis cycle NOW' },
                 { command: 'balance', description: 'Show portfolio balances' },
                 { command: 'performance', description: 'Show trade performance' },
                 { command: 'status', description: 'Check system health' },
@@ -66,6 +68,7 @@ export class TelegramService {
         return {
             reply_markup: {
                 keyboard: [
+                    [{ text: '🔍 Analyze Now' }],
                     [{ text: '📊 Balance' }, { text: '📈 Performance' }],
                     [{ text: '🏥 Status' }, { text: '📋 Logs' }],
                     [{ text: '❓ Help' }]
@@ -84,6 +87,7 @@ export class TelegramService {
             const text = msg.text;
             if (!text) return;
 
+            if (text === '🔍 Analyze Now') return this.handleAnalyze(msg);
             if (text === '📊 Balance') return this.handleBalance(msg);
             if (text === '📈 Performance') return this.handlePerformance(msg);
             if (text === '🏥 Status') return this.handleStatus(msg);
@@ -93,6 +97,7 @@ export class TelegramService {
 
         this.bot.onText(/\/start/, (msg) => this.handleHelp(msg));
         this.bot.onText(/\/help/, (msg) => this.handleHelp(msg));
+        this.bot.onText(/\/analyze/, (msg) => this.handleAnalyze(msg));
         this.bot.onText(/\/balance/, (msg) => this.handleBalance(msg));
         this.bot.onText(/\/performance/, (msg) => this.handlePerformance(msg));
         this.bot.onText(/\/status/, (msg) => this.handleStatus(msg));
@@ -154,11 +159,16 @@ export class TelegramService {
 Use the menu buttons below or commands to manage your bot.
 
 *Commands:*
+/analyze - Run full data & signal engine NOW
 /balance - Current holdings
 /performance - Trade stats
 /status - System health
 /logs - Recent activity
-/set_balance <asset> <amount> - Update holdings
+
+*Manage Portfolio:*
+/set_balance EUR 1000 - Set Euro balance
+/set_balance BTC 0.5 - Set Bitcoin balance
+/set_balance ETH 2.0 - Set Ethereum balance
         `.trim();
         this.bot?.sendMessage(msg.chat.id, helpText, { parse_mode: 'Markdown', ...this.getMainMenu() });
     }
@@ -207,6 +217,19 @@ Use the menu buttons below or commands to manage your bot.
             this.bot?.sendMessage(msg.chat.id, `*📋 Recent Logs:*\n\`\`\`\n${lastLines}\n\`\`\``, { parse_mode: 'Markdown', ...this.getMainMenu() });
         } catch (error) {
             this.bot?.sendMessage(msg.chat.id, "❌ Error reading logs.", this.getMainMenu());
+        }
+    }
+
+    private async handleAnalyze(msg: any) {
+        const chatId = msg.chat.id;
+        this.bot?.sendMessage(chatId, "🔍 *Starting full analysis cycle...* \n(Price -> Derivatives -> Sentiment -> Macro -> On-Chain -> Indicators -> Signals)\n\n_This may take a minute._", { parse_mode: 'Markdown' });
+
+        const result = await pipelineManager.runFullCycle();
+
+        if (result.success) {
+            this.bot?.sendMessage(chatId, `✅ *Analysis Complete:* ${result.message}`, this.getMainMenu());
+        } else {
+            this.bot?.sendMessage(chatId, `❌ *Analysis Failed:* ${result.message}`, this.getMainMenu());
         }
     }
 

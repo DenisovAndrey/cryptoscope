@@ -12,6 +12,7 @@ import { tradeJournalRepository } from './db/repositories/journal.js';
 import { statusService } from './utils/status.js';
 import { portfolioRepository } from './db/repositories/portfolio.js';
 import { candleRepository } from './db/repositories/candles.js';
+import { pipelineManager } from './engine/pipeline.js';
 import cron from 'node-cron';
 
 async function bootstrap() {
@@ -30,47 +31,15 @@ async function bootstrap() {
             );
         }
 
-        // 3. Initial Collection (synchronous for price data to ensure indicators have data)
-        logger.info('Performing initial boot data collection...');
+        // 3. Initial Pipeline Run
+        await pipelineManager.runFullCycle();
 
-        for (const asset of config.trading.assets) {
-            await new PriceCollector(asset, '1h').collect();
-            await new DerivativesCollector(asset).collect();
-        }
-
-        await new SentimentCollector().collect();
-        await new MacroCollector().collect();
-        await new OnChainCollector().collect();
-
-        // 3. Initial Indicator Calculation
-        await runIndicatorEngine();
-        statusService.updateStatus('Indicator Engine', 'SUCCESS');
-
-        // 4. Initial Signal Evaluation
-        const signalEngine = new SignalEngine();
-        await signalEngine.run();
-        statusService.updateStatus('Signal Engine', 'SUCCESS');
-
-        // 5. Setup Scheduler
+        // 4. Setup Scheduler
         logger.info('Setting up execution schedules...');
 
-        // Price collection: Every hour
+        // Price collection and Engine: Every hour
         const priceJob = cron.schedule(config.scheduler.priceCron, async () => {
-            for (const asset of config.trading.assets) {
-                await new PriceCollector(asset, '1h').collect();
-            }
-            // Recalculate indicators after price update
-            try {
-                await runIndicatorEngine();
-                statusService.updateStatus('Indicator Engine', 'SUCCESS');
-
-                // Evaluate signals after indicators are ready
-                await new SignalEngine().run();
-                statusService.updateStatus('Signal Engine', 'SUCCESS');
-            } catch (error: any) {
-                logger.error({ err: error.message }, 'Engine cycle failed');
-                statusService.updateStatus('Engine Cycle', 'FAILURE', error.message);
-            }
+            await pipelineManager.runFullCycle();
         });
 
         // Derivatives: Every 4 hours
