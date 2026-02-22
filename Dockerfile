@@ -17,6 +17,6 @@ COPY . .
 # Set Puppeteer to use the installed Chromium
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
-RUN npm run build
+RUN npm run build && mkdir -p dist/db && cp src/db/schema.sql dist/db/
 
 CMD ["npm", "start"]
