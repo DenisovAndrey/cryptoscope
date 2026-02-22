@@ -1,0 +1,15 @@
+services:
+  app:
+    build: .
+    volumes:
+      - ./data:/app/data
+      - ./.env:/app/.env
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - DB_PATH=/app/data/cryptoscope.db
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
