@@ -52,6 +52,7 @@ export class TelegramService {
         try {
             await this.bot.setMyCommands([
                 { command: 'start', description: 'Start the bot and show menu' },
+                { command: 'set_balance', description: 'Update holdings (e.g. /set_balance EUR 1000)' },
                 { command: 'analyze', description: 'Trigger full analysis cycle NOW' },
                 { command: 'balance', description: 'Show portfolio balances' },
                 { command: 'performance', description: 'Show trade performance' },
