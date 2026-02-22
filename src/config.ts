@@ -24,11 +24,15 @@ export const config = {
         // Signal tuning
         l1BullishThreshold: parseFloat(process.env.L1_BULLISH_THRESHOLD || '0.2'),
         l1BearishThreshold: parseFloat(process.env.L1_BEARISH_THRESHOLD || '-0.2'),
-        l2RsiBullCeiling: parseFloat(process.env.L2_RSI_BULL_CEILING || '50'),
-        l2RsiBearFloor: parseFloat(process.env.L2_RSI_BEAR_FLOOR || '60'),
-        atrMultiplier: parseFloat(process.env.ATR_MULTIPLIER || '1.5'),
+        l2RsiBullCeiling: parseFloat(process.env.L2_RSI_BULL_CEILING || '55'),
+        l2RsiBearFloor: parseFloat(process.env.L2_RSI_BEAR_FLOOR || '68'),
+        atrMultiplier: {
+            BTC: parseFloat(process.env.ATR_MULTIPLIER_BTC || '1.5'),
+            ETH: parseFloat(process.env.ATR_MULTIPLIER_ETH || '2.0'),
+            DEFAULT: parseFloat(process.env.ATR_MULTIPLIER_DEFAULT || '1.5'),
+        },
         tp1Multiplier: parseFloat(process.env.TP1_MULTIPLIER || '2.0'),
-        tp2Multiplier: parseFloat(process.env.TP2_MULTIPLIER || '4.0'),
+        tp2Multiplier: parseFloat(process.env.TP2_MULTIPLIER || '3.0'), // Lowered to 3.0 (Phase D)
         maxPositionPct: parseFloat(process.env.MAX_POSITION_PCT || '30'),
     },
 

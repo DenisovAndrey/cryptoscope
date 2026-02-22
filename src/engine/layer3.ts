@@ -11,8 +11,9 @@ export class Layer3Engine {
     calculate(asset: string, currentPrice: number, atr: number, direction: 'BUY' | 'SELL'): RiskResult {
         const riskPerTrade = config.trading.riskPerTradePct / 100;
 
-        // Stop Loss: configurable ATR multiplier
-        const slDistance = atr * config.trading.atrMultiplier;
+        // Stop Loss: asset-specific or default ATR multiplier
+        const multiplier = (config.trading.atrMultiplier as any)[asset] || (config.trading.atrMultiplier as any).DEFAULT;
+        const slDistance = atr * multiplier;
         const stopLoss = direction === 'BUY' ? currentPrice - slDistance : currentPrice + slDistance;
 
         // Position Sizing: (Risk Amount) / (Distance to Stop)

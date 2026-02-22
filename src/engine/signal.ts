@@ -35,6 +35,13 @@ export class SignalEngine {
         const candle = candleRepository.getByTimestamp(asset, '1h', timestamp);
         if (!candle) return null;
 
+        // 0. Trend Strength Gate
+        const adx = indicatorRepository.getForTimestamp(asset, '1h', 'adx_14', timestamp);
+        if (!adx || adx.value < 18) {
+            logger.debug({ asset, adx: adx?.value }, 'Signal suppressed: Low trend strength');
+            return null;
+        }
+
         // 1. Directional Evaluation
         const l1Result = await this.l1.evaluate(asset, timestamp);
         logger.debug({ asset, l1: l1Result }, 'L1 Evaluation Result');
@@ -44,9 +51,14 @@ export class SignalEngine {
         logger.debug({ asset, l2: l2Result }, 'L2 Evaluation Result');
 
         // 3. Risk Calculation (only if Direction + Timing align)
-        if (l1Result.direction !== 'NEUTRAL' && l2Result.timing === 'ENTRY') {
-            const direction: 'BUY' | 'SELL' = l1Result.direction === 'BULLISH' ? 'BUY' : 'SELL';
+        let direction: 'BUY' | 'SELL' | null = null;
+        if (l1Result.direction === 'BULLISH' && l2Result.timing === 'BULL_ENTRY') {
+            direction = 'BUY';
+        } else if (l1Result.direction === 'BEARISH' && l2Result.timing === 'BEAR_ENTRY') {
+            direction = 'SELL';
+        }
 
+        if (direction) {
             // Fixed: use indicatorRepository.getForTimestamp instead of getLatest
             const atr = indicatorRepository.getForTimestamp(asset, '1h', 'atr_14', timestamp)?.value || 0;
             if (atr === 0) return null;

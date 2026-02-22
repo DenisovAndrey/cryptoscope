@@ -3,7 +3,8 @@ import {
     RSI,
     MACD,
     BollingerBands,
-    ATR
+    ATR,
+    ADX
 } from 'trading-signals';
 import { Candle } from '../db/repositories/candles.js';
 import { indicatorRepository, IndicatorData } from '../db/repositories/indicators.js';
@@ -26,6 +27,7 @@ export class IndicatorCalculator {
         const macd = new MACD(new EMA(12), new EMA(26), new EMA(9));
         const bb = new BollingerBands(20, 2);
         const atr = new ATR(14);
+        const adx = new ADX(14);
 
         const indicatorOutputs: IndicatorData[] = [];
 
@@ -40,6 +42,7 @@ export class IndicatorCalculator {
             macd.update(price, false);
             bb.update(price, false);
             atr.update({ high: candle.high, low: candle.low, close: candle.close }, false);
+            adx.update({ high: candle.high, low: candle.low, close: candle.close }, false);
 
             // Only save if matured (some indicators need enough data)
             if (ema20.isStable && ema200.isStable && rsi14.isStable && macd.isStable) {
@@ -57,7 +60,8 @@ export class IndicatorCalculator {
                     { name: 'bb_upper', value: Number(bb.getResult()!.upper.valueOf()) },
                     { name: 'bb_lower', value: Number(bb.getResult()!.lower.valueOf()) },
                     { name: 'bb_middle', value: Number(bb.getResult()!.middle.valueOf()) },
-                    { name: 'atr_14', value: Number(atr.getResult()!.valueOf()) }
+                    { name: 'atr_14', value: Number(atr.getResult()!.valueOf()) },
+                    { name: 'adx_14', value: Number(adx.getResult()!.valueOf()) }
                 ];
 
                 for (const res of results) {
