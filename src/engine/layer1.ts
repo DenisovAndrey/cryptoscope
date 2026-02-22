@@ -2,6 +2,7 @@ import { indicatorRepository } from '../db/repositories/indicators.js';
 import { sentimentRepository, SentimentData } from '../db/repositories/sentiment.js';
 import { onChainRepository, OnChainData } from '../db/repositories/onchain.js';
 import { macroRepository, MacroData } from '../db/repositories/macro.js';
+import { config } from '../config.js';
 import { logger } from '../utils/logger.js';
 
 export interface LayerResult {
@@ -26,9 +27,15 @@ export class Layer1Engine {
             if (ema20 > ema50 && ema50 > ema200) {
                 trendScore = 1;
                 trendReason = 'Perfect Bullish Alignment';
+            } else if (ema20 > ema200) {
+                trendScore = 0.5;
+                trendReason = 'Partial Bullish (above long-term)';
             } else if (ema20 < ema50 && ema50 < ema200) {
                 trendScore = -1;
                 trendReason = 'Perfect Bearish Alignment';
+            } else if (ema20 < ema200) {
+                trendScore = -0.5;
+                trendReason = 'Partial Bearish (below long-term)';
             }
         }
 
@@ -57,7 +64,7 @@ export class Layer1Engine {
         const finalScore = (trendScore * 0.4) + (sentimentScore * 0.2) + (macroScore * 0.1) + (onchainScore * 0.3);
 
         return {
-            direction: finalScore > 0.3 ? 'BULLISH' : finalScore < -0.3 ? 'BEARISH' : 'NEUTRAL',
+            direction: finalScore > config.trading.l1BullishThreshold ? 'BULLISH' : finalScore < config.trading.l1BearishThreshold ? 'BEARISH' : 'NEUTRAL',
             score: Math.abs(finalScore),
             reason: `Trend: ${trendReason}`
         };

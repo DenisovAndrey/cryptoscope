@@ -1,4 +1,5 @@
 import { indicatorRepository } from '../db/repositories/indicators.js';
+import { config } from '../config.js';
 
 export interface TimingResult {
     timing: 'ENTRY' | 'EXIT' | 'NO_SIGNAL';
@@ -18,12 +19,16 @@ export class Layer2Engine {
         const details: any = { rsi, macdHist };
 
         if (rsi && macdHist) {
-            // Bullish Entry: RSI crosses above 30 or MACD flip while RSI < 60
-            if (rsi < 40 && macdHist > 0) {
+            // Bullish Entry: RSI pullback in non-overbought zone + positive MACD momentum
+            if (rsi < config.trading.l2RsiBullCeiling && macdHist > 0) {
                 timing = 'ENTRY';
             }
-            // Bearish Exit: RSI > 70 or MACD flip negative
-            if (rsi > 70 || macdHist < 0) {
+            // Bearish Entry: RSI elevated + negative MACD momentum (enables SELL signals)
+            if (rsi > config.trading.l2RsiBearFloor && macdHist < 0) {
+                timing = 'ENTRY';
+            }
+            // Overbought/Oversold Exit signals
+            if (rsi > 80 || rsi < 15) {
                 timing = 'EXIT';
             }
         }

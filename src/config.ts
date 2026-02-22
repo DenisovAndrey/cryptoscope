@@ -20,6 +20,16 @@ export const config = {
         maxPositions: parseInt(process.env.MAX_POSITIONS || '3', 10),
         maxPortfolioRiskPct: parseFloat(process.env.MAX_PORTFOLIO_RISK_PCT || '6'),
         assets: (process.env.ASSETS || 'BTC,ETH').split(',').map(a => a.trim()),
+
+        // Signal tuning
+        l1BullishThreshold: parseFloat(process.env.L1_BULLISH_THRESHOLD || '0.2'),
+        l1BearishThreshold: parseFloat(process.env.L1_BEARISH_THRESHOLD || '-0.2'),
+        l2RsiBullCeiling: parseFloat(process.env.L2_RSI_BULL_CEILING || '50'),
+        l2RsiBearFloor: parseFloat(process.env.L2_RSI_BEAR_FLOOR || '60'),
+        atrMultiplier: parseFloat(process.env.ATR_MULTIPLIER || '1.5'),
+        tp1Multiplier: parseFloat(process.env.TP1_MULTIPLIER || '2.0'),
+        tp2Multiplier: parseFloat(process.env.TP2_MULTIPLIER || '4.0'),
+        maxPositionPct: parseFloat(process.env.MAX_POSITION_PCT || '30'),
     },
 
     scheduler: {

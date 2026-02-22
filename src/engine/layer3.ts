@@ -11,8 +11,8 @@ export class Layer3Engine {
     calculate(asset: string, currentPrice: number, atr: number, direction: 'BUY' | 'SELL'): RiskResult {
         const riskPerTrade = config.trading.riskPerTradePct / 100;
 
-        // Stop Loss: 2 * ATR away from current price
-        const slDistance = atr * 2;
+        // Stop Loss: configurable ATR multiplier
+        const slDistance = atr * config.trading.atrMultiplier;
         const stopLoss = direction === 'BUY' ? currentPrice - slDistance : currentPrice + slDistance;
 
         // Position Sizing: (Risk Amount) / (Distance to Stop)
@@ -20,11 +20,11 @@ export class Layer3Engine {
         const riskPctOfPrice = slDistance / currentPrice;
         let positionSizePct = (riskPerTrade / riskPctOfPrice) * 100;
 
-        if (positionSizePct > 20) positionSizePct = 20;
+        if (positionSizePct > config.trading.maxPositionPct) positionSizePct = config.trading.maxPositionPct;
 
-        // Take Profit: 1.5R and 3R
-        const tp1 = direction === 'BUY' ? currentPrice + (slDistance * 1.5) : currentPrice - (slDistance * 1.5);
-        const tp2 = direction === 'BUY' ? currentPrice + (slDistance * 3) : currentPrice - (slDistance * 3);
+        // Take Profit: configurable R-multiples
+        const tp1 = direction === 'BUY' ? currentPrice + (slDistance * config.trading.tp1Multiplier) : currentPrice - (slDistance * config.trading.tp1Multiplier);
+        const tp2 = direction === 'BUY' ? currentPrice + (slDistance * config.trading.tp2Multiplier) : currentPrice - (slDistance * config.trading.tp2Multiplier);
 
         return {
             positionSizePct: Math.round(positionSizePct * 100) / 100,
